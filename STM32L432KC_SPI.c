@@ -1,6 +1,7 @@
 // STM32L432KC_SPI.c
-// Source code for SPI functions
-
+// Maynor
+// mbacitzep@hmc.edu
+//UNITALIZE SPI
 #include "STM32L432KC.h"
 #include "STM32L432KC_SPI.h"
 #include "STM32L432KC_GPIO.h"
@@ -36,7 +37,7 @@ void initSPI(int br, int cpol, int cpha) {
 
     SPI1->CR1 |= (SPI_CR1_MSTR);
     SPI1->CR1 &= ~(SPI_CR1_CPOL | SPI_CR1_CPHA | SPI_CR1_LSBFIRST | SPI_CR1_SSM);
-    SPI1->CR1 |= _VAL2FLD(SPI_CR1_CPHA, cpha);
+    SPI1->CR1 |= _VAL2FLD(SPI_CR1_CPHA, cpha); 
     SPI1->CR1 |= _VAL2FLD(SPI_CR1_CPOL, cpol);
     SPI1->CR2 |= _VAL2FLD(SPI_CR2_DS, 0b0111);
     SPI1->CR2 |= (SPI_CR2_FRXTH | SPI_CR2_SSOE);

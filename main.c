@@ -45,10 +45,20 @@ int updateLEDStatus(char request[])
 
 	return led_status;
 }
-
 /////////////////////////////////////////////////////////////////
 // Solution Functions
 /////////////////////////////////////////////////////////////////
+
+
+// Function used by printf to send characters to the laptop
+int _write(int file, char *ptr, int len) {
+  int i = 0;
+  for (i = 0; i < len; i++) {
+    ITM_SendChar((*ptr++));
+  }
+  return len;
+}
+
 
 int main(void) {
   configureFlash();
@@ -65,7 +75,14 @@ int main(void) {
   
   USART_TypeDef * USART = initUSART(USART1_ID, 125000);
 
-  // TODO: Add SPI initialization code
+  initSPI(0b010, 0, 0); 
+
+  //Setting it to 12 bit resolution
+  digitalWrite(SPI_CE, 0);                 // Select the DS1722
+  spiSendReceive(0x80);                    // Command: write to config register
+  spiSendReceive(0xC0);                    // Data: 12-bit continuous
+  digitalWrite(SPI_CE, 1);                 // Deselect
+
 
   while(1) {
     /* Wait for ESP8266 to send a request.
@@ -84,30 +101,41 @@ int main(void) {
       request[charIndex++] = readChar(USART);
     }
 
-    // TODO: Add SPI code here for reading temperature
+    //SPI code here for reading temperature
+    digitalWrite(SPI_CE, 0);              // Pull CS low to start the read
+    spiSendReceive(0x02);                 // 0x02 tells us to start at the most significant bit
+    uint8_t msb = spiSendReceive(0x00);   // Read MSB
+    uint8_t lsb = spiSendReceive(0x00);   // Read LSB; it automatically decrements
+    digitalWrite(SPI_CE, 1);              // Pull CS high to end the read
   
+    //Convert raw data
+    int16_t rawTemp = (msb << 8); //msb is shifted 8 bits as that is how many are representing integer, plus MSB is supposed to be the 8 sig digs
+    rawTemp = rawTemp | lsb; //OR beacuse some bits are 0, meaning we don't want them.
+    float temperature = rawTemp / 256.0;  // 12-bit mode = 1 LSB = 1/16 °C = raw / 256
+    printf("Revs Per Second: %f!\n", temperature);
+
     // Update string with current LED state
   
-    int led_status = updateLEDStatus(request);
+    //int led_status = updateLEDStatus(request);
 
-    char ledStatusStr[20];
-    if (led_status == 1)
-      sprintf(ledStatusStr,"LED is on!");
-    else if (led_status == 0)
-      sprintf(ledStatusStr,"LED is off!");
+    //char ledStatusStr[20];
+    //if (led_status == 1)
+    //  sprintf(ledStatusStr,"LED is on!");
+    //else if (led_status == 0)
+    //  sprintf(ledStatusStr,"LED is off!");
 
-    // finally, transmit the webpage over UART
-    sendString(USART, webpageStart); // webpage header code
-    sendString(USART, ledStr); // button for controlling LED
+    //// finally, transmit the webpage over UART
+    //sendString(USART, webpageStart); // webpage header code
+    //sendString(USART, ledStr); // button for controlling LED
 
-    sendString(USART, "<h2>LED Status</h2>");
+    //sendString(USART, "<h2>LED Status</h2>");
 
 
-    sendString(USART, "<p>");
-    sendString(USART, ledStatusStr);
-    sendString(USART, "</p>");
+    //sendString(USART, "<p>");
+    //sendString(USART, ledStatusStr);
+    //sendString(USART, "</p>");
 
   
-    sendString(USART, webpageEnd);
+    //sendString(USART, webpageEnd);
   }
 }
