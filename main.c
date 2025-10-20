@@ -95,11 +95,11 @@ int main(void) {
     int charIndex = 0;
   
     // Keep going until you get end of line character
-    while(inString(request, "\n") == -1) {
-      // Wait for a complete request to be transmitted before processing
-      while(!(USART->ISR & USART_ISR_RXNE));
-      request[charIndex++] = readChar(USART);
-    }
+    //while(inString(request, "\n") == -1) {
+    //  // Wait for a complete request to be transmitted before processing
+    //  while(!(USART->ISR & USART_ISR_RXNE));
+    //  request[charIndex++] = readChar(USART);
+    //}
 
     //SPI code here for reading temperature
     digitalWrite(SPI_CE, 0);              // Pull CS low to start the read
@@ -111,8 +111,8 @@ int main(void) {
     //Convert raw data
     int16_t rawTemp = (msb << 8); //msb is shifted 8 bits as that is how many are representing integer, plus MSB is supposed to be the 8 sig digs
     rawTemp = rawTemp | lsb; //OR beacuse some bits are 0, meaning we don't want them.
-    float temperature = rawTemp / 256.0;  // 12-bit mode = 1 LSB = 1/16 °C = raw / 256
-    printf("Revs Per Second: %f!\n", temperature);
+    float temperature = ((uint16_t) rawTemp) * 0.0625;  // 12-bit mode = 1 LSB = 1/16 °C = raw / 256
+    printf("TEMP IS: %f!\n", temperature);
 
     // Update string with current LED state
   
