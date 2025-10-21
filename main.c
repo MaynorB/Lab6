@@ -109,13 +109,14 @@ int main(void) {
     digitalWrite(SPI_CE, 1);              // Pull CS high to end the read
   
     //Convert raw data
-    int16_t rawTemp = (msb << 8); //msb is shifted 8 bits as that is how many are representing integer, plus MSB is supposed to be the 8 sig digs
+    int16_t rawTemp = (msb << 4); //msb is shifted 8 bits as that is how many are representing integer, plus MSB is supposed to be the 8 sig digs
     rawTemp = rawTemp | lsb; //OR beacuse some bits are 0, meaning we don't want them.
     float temperature = ((uint16_t) rawTemp) * 0.0625;  // 12-bit mode = 1 LSB = 1/16 °C = raw / 256
-    printf("TEMP IS: %f!\n", temperature);
+    char tempStr[50];
+    sprintf(tempStr,"TEMPERATURE IS %.2f CELSIUS",temperature);
+    printf("%f\n", temperature);
 
     // Update string with current LED state
-  
     int led_status = updateLEDStatus(request);
     char ledStatusStr[20];
     if (led_status == 1)
@@ -136,6 +137,11 @@ int main(void) {
     sendString(USART, ledStatusStr);
     sendString(USART, "</p>");
 
+    sendString(USART, "<h2>TEMPERATURE</h2>");
+
+    sendString(USART, "<p>");
+    sendString(USART, tempStr);
+    sendString(USART, "</p>");
   
     sendString(USART, webpageEnd);
   }
