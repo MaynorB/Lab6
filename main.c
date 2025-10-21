@@ -68,7 +68,7 @@ int main(void) {
   gpioEnable(GPIO_PORT_B);
   gpioEnable(GPIO_PORT_C);
 
-  pinMode(PB3, GPIO_OUTPUT);
+  pinMode(PB6, GPIO_OUTPUT);
   
   RCC->APB2ENR |= (RCC_APB2ENR_TIM15EN);
   initTIM(TIM15);
@@ -95,11 +95,11 @@ int main(void) {
     int charIndex = 0;
   
     // Keep going until you get end of line character
-    //while(inString(request, "\n") == -1) {
-    //  // Wait for a complete request to be transmitted before processing
-    //  while(!(USART->ISR & USART_ISR_RXNE));
-    //  request[charIndex++] = readChar(USART);
-    //}
+    while(inString(request, "\n") == -1) {
+    // Wait for a complete request to be transmitted before processing
+      while(!(USART->ISR & USART_ISR_RXNE));
+      request[charIndex++] = readChar(USART);
+  }
 
     //SPI code here for reading temperature
     digitalWrite(SPI_CE, 0);              // Pull CS low to start the read
@@ -116,26 +116,27 @@ int main(void) {
 
     // Update string with current LED state
   
-    //int led_status = updateLEDStatus(request);
+    int led_status = updateLEDStatus(request);
+    char ledStatusStr[20];
+    if (led_status == 1)
+      sprintf(ledStatusStr,"LED is on!");
+    else if (led_status == 0)
+      sprintf(ledStatusStr,"LED is off!");
 
-    //char ledStatusStr[20];
-    //if (led_status == 1)
-    //  sprintf(ledStatusStr,"LED is on!");
-    //else if (led_status == 0)
-    //  sprintf(ledStatusStr,"LED is off!");
 
+    
     //// finally, transmit the webpage over UART
-    //sendString(USART, webpageStart); // webpage header code
-    //sendString(USART, ledStr); // button for controlling LED
+    sendString(USART, webpageStart); // webpage header code
+    sendString(USART, ledStr); // button for controlling LED
 
-    //sendString(USART, "<h2>LED Status</h2>");
+    sendString(USART, "<h2>LED Status</h2>");
 
 
-    //sendString(USART, "<p>");
-    //sendString(USART, ledStatusStr);
-    //sendString(USART, "</p>");
+    sendString(USART, "<p>");
+    sendString(USART, ledStatusStr);
+    sendString(USART, "</p>");
 
   
-    //sendString(USART, webpageEnd);
+    sendString(USART, webpageEnd);
   }
 }
