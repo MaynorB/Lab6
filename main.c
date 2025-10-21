@@ -11,6 +11,7 @@ Date: 9/14/19
 #include <stdio.h>
 #include "main.h"
 
+
 /////////////////////////////////////////////////////////////////
 // Provided Constants and Functions
 /////////////////////////////////////////////////////////////////
@@ -70,18 +71,19 @@ int main(void) {
 
   pinMode(PB6, GPIO_OUTPUT);
   
+  //Timer15
   RCC->APB2ENR |= (RCC_APB2ENR_TIM15EN);
   initTIM(TIM15);
   
   USART_TypeDef * USART = initUSART(USART1_ID, 125000);
 
-  initSPI(0b010, 0, 0); 
+  initSPI(0b010, 0, 1); 
 
   //Setting it to 12 bit resolution
-  digitalWrite(SPI_CE, 0);                 // Select the DS1722
+  digitalWrite(SPI_CE, 1);                 // Select the DS1722
   spiSendReceive(0x80);                    // Command: write to config register
   spiSendReceive(0xC0);                    // Data: 12-bit continuous
-  digitalWrite(SPI_CE, 1);                 // Deselect
+  digitalWrite(SPI_CE, 0);                 // Deselect
 
 
   while(1) {
@@ -102,19 +104,18 @@ int main(void) {
   }
 
     //SPI code here for reading temperature
-    digitalWrite(SPI_CE, 0);              // Pull CS low to start the read
+    digitalWrite(SPI_CE, 1);              // Pull CS low to start the read
     spiSendReceive(0x02);                 // 0x02 tells us to start at the most significant bit
     uint8_t msb = spiSendReceive(0x00);   // Read MSB
     uint8_t lsb = spiSendReceive(0x00);   // Read LSB; it automatically decrements
-    digitalWrite(SPI_CE, 1);              // Pull CS high to end the read
+    digitalWrite(SPI_CE, 0);              // Pull CS high to end the read
   
-    //Convert raw data
-    int16_t rawTemp = (msb << 4); //msb is shifted 8 bits as that is how many are representing integer, plus MSB is supposed to be the 8 sig digs
-    rawTemp = rawTemp | lsb; //OR beacuse some bits are 0, meaning we don't want them.
-    float temperature = ((uint16_t) rawTemp) * 0.0625;  // 12-bit mode = 1 LSB = 1/16 °C = raw / 256
+
+    float temperature = calculateTemp(msb,  lsb);
     char tempStr[50];
     sprintf(tempStr,"TEMPERATURE IS %.2f CELSIUS",temperature);
     printf("%f\n", temperature);
+
 
     // Update string with current LED state
     int led_status = updateLEDStatus(request);

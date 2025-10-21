@@ -13,16 +13,28 @@
 #define SPI_MOSI PB5
 #define SPI_MISO PB4
 
-///////////////////////////////////////////////////////////////////////////////
-// Function prototypes
-///////////////////////////////////////////////////////////////////////////////
 
-/* Enables the SPI peripheral and intializes its clock speed (baud rate), polarity, and phase.
- *    -- br: (0b000 - 0b111). The SPI clk will be the master clock / 2^(BR+1).
- *    -- cpol: clock polarity (0: inactive state is logical 0, 1: inactive state is logical 1).
- *    -- cpha: clock phase (0: data captured on leading edge of clk and changed on next edge, 
- *          1: data changed on leading edge of clk and captured on next edge)
- * Refer to the datasheet for more low-level details. */ 
+ /*********************************************************************
+*
+*       initSPI()
+*
+*       Sets up SPI
+*       br: (0b0000 - 0b1111) sets the baud rate, fixing the SPI clock to SYSCLK / 2^(BR+1)
+*       cplo: sets the clock polarity,
+*             0: inactive at logic 0
+*             1: inactive at logic 1
+*       cpha: sets the clock phase. 
+*             0: data is capturred on leading edge and changed on next edge
+*             1: data is changed on leading edge and captured on next edge
+*
+*  
+*       CONSQUENCES: PB3, PB4, PB5, PA11 WILL BE USED FOR SPI
+*       PB3: SP1 CLOCK
+*       PB4: SP1 MISO
+*       PB5: SP1 MOSI
+*       PA11: MANNUAL CHIP SELECT
+*
+*/
 void initSPI(int br, int cpol, int cpha);
 
 /* Transmits a character (1 byte) over SPI and returns the received character.
