@@ -78,14 +78,14 @@ void initSPI(int br, int cpol, int cpha) {
     SPI1->CR1 &= ~SPI_CR1_LSBFIRST;                               // MSB first
 
     // --- Step 2f: Slave management ---
-    //SPI1->CR1 &= ~SPI_CR1_SSM;                                    // Disable software NSS management
-    //SPI1->CR1 &= ~SPI_CR1_SSI;                                    // Use hardware NSS control
+    SPI1->CR1 |= SPI_CR1_SSM;                                    // Enable software NSS management
+    SPI1->CR1 |= SPI_CR1_SSI;                                    // Disable hardware NSS control (MASTER MODE ACTIVE)
 
     // --- Step 3a: Data size ---
     SPI1->CR2 |= _VAL2FLD(SPI_CR2_DS, 0b0111);                    // 8-bit data frame
 
-    // --- Step 3b: Enable SSOE (NSS output enable) ---
-   SPI1->CR2 |= SPI_CR2_SSOE;                                    // NSS driven automatically when SPE=1
+    // --- Step 3b: Disable SSOE (NSS output disable) ---
+   SPI1->CR2 &= ~SPI_CR2_SSOE;                                    // DISABLE NSS OUTPUT
 
     // --- Step 3e: RX FIFO threshold ---
     SPI1->CR2 |= SPI_CR2_FRXTH;                                   // 8-bit data alignment for RX

@@ -121,7 +121,12 @@ int main(void) {
     printf("%f\n", temperature);
 
 
-
+    char maxStr[50];
+    char minStr[50];
+    float max = calculateTemp(0x19,  0x10);
+    float min = calculateTemp(0xF5,  0xE0);
+    sprintf(maxStr,"MAX TEMP %.4f C",max);
+    sprintf(minStr,"MIN TEMP IS %.4f C",min);
     // Update string with current LED state
     int led_status = updateLEDStatus(request);
     char ledStatusStr[20];
@@ -147,6 +152,14 @@ int main(void) {
 
     sendString(USART, "<p>");
     sendString(USART, tempStr);
+    sendString(USART, "</p>");
+
+    sendString(USART, "<p>");
+    sendString(USART, maxStr);
+    sendString(USART, "</p>");
+
+    sendString(USART, "<p>");
+    sendString(USART, minStr);
     sendString(USART, "</p>");
   
     sendString(USART, webpageEnd);

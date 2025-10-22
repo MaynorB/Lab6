@@ -56,9 +56,10 @@
   <Watches active="0" update="Never"/>
  </Watch4>
  <Files>
-  <SessionOpenFile windowGroup="DockEditLeft" x="10" y="120" useTextEdit="1" path="main.c" left="0" selected="1" top="70" codecName="Default"/>
-  <SessionOpenFile windowGroup="DockEditLeft" x="4" y="39" useTextEdit="1" path="STM32L432KC_SPI.c" left="0" top="21" codecName="Default"/>
-  <SessionOpenFile windowGroup="DockEditLeft" x="5" y="27" useTextEdit="1" path="STM32L432KC_RCC.c" left="0" top="0" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="21" y="114" useTextEdit="1" path="main.c" left="0" top="91" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="41" y="81" useTextEdit="1" path="DS1722.c" left="0" top="40" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="25" y="19" useTextEdit="1" path="DS1722.h" left="0" top="0" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="69" y="87" useTextEdit="1" path="STM32L432KC_SPI.c" left="0" selected="1" top="42" codecName="Default"/>
  </Files>
  <EMStudioWindow activeProject="lab6" fileDialogDefaultFilter="*.c" autoConnectTarget="J-Link" buildConfiguration="Debug" sessionSettings="" debugSearchFileMap="" fileDialogInitialDirectory="/Users/mynority/Documents/Github/lab6" debugSearchPath="" autoConnectCapabilities="3711"/>
 </session>
