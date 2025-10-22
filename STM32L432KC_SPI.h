@@ -9,7 +9,7 @@
 
 
 #define SPI_CE PA11
-#define SPI_SCK PB3
+#define SPI_SCK PA5
 #define SPI_MOSI PB5
 #define SPI_MISO PB4
 

@@ -10,6 +10,7 @@ Date: 9/14/19
 #include <stdlib.h>
 #include <stdio.h>
 #include "main.h"
+#include "DS1722.h"
 
 
 /////////////////////////////////////////////////////////////////
@@ -64,7 +65,6 @@ int _write(int file, char *ptr, int len) {
 int main(void) {
   configureFlash();
   configureClock();
-
   gpioEnable(GPIO_PORT_A);
   gpioEnable(GPIO_PORT_B);
   gpioEnable(GPIO_PORT_C);
@@ -77,13 +77,13 @@ int main(void) {
   
   USART_TypeDef * USART = initUSART(USART1_ID, 125000);
 
-  initSPI(0b010, 0, 1); 
+  initSPI(0b111, 0, 1); //Using very slow clock to make sure it'll work
+for (int i = 0; i < 30; i++) {
+  digitalWrite(SPI_CE, 1);       // select DS1722
+  spiSendReceive(0x00);          // send dummy byte to generate clocks
+  digitalWrite(SPI_CE, 0);       // deselect
 
-  //Setting it to 12 bit resolution
-  digitalWrite(SPI_CE, 1);                 // Select the DS1722
-  spiSendReceive(0x80);                    // Command: write to config register
-  spiSendReceive(0xC0);                    // Data: 12-bit continuous
-  digitalWrite(SPI_CE, 0);                 // Deselect
+}
 
 
   while(1) {
@@ -104,17 +104,34 @@ int main(void) {
   }
 
     //SPI code here for reading temperature
-    digitalWrite(SPI_CE, 1);              // Pull CS low to start the read
-    spiSendReceive(0x02);                 // 0x02 tells us to start at the most significant bit
-    uint8_t msb = spiSendReceive(0x00);   // Read MSB
-    uint8_t lsb = spiSendReceive(0x00);   // Read LSB; it automatically decrements
-    digitalWrite(SPI_CE, 0);              // Pull CS high to end the read
-  
+    uint8_t config;
+    digitalWrite(SPI_CE, 1);
+    spiSendReceive(0x00);          // read config command
+    config = spiSendReceive(0x00); // dummy to clock out config
+    digitalWrite(SPI_CE, 0);
+    printf("config: %02X\n", config);
 
+    // // ---- Read TEMP MSB ----
+    uint8_t msb;
+    digitalWrite(SPI_CE, 1);
+    spiSendReceive(0x02);        // read MSB addr
+    msb = spiSendReceive(0x00);  // dummy to clock out
+    digitalWrite(SPI_CE, 0);
+    printf("MSB: %02X\n", msb);
+
+    //// ---- Read TEMP LSB ----
+    uint8_t lsb;
+    digitalWrite(SPI_CE, 1);
+    spiSendReceive(0x01);        // read LSB addr
+    lsb = spiSendReceive(0x00);  // dummy to clock out
+    digitalWrite(SPI_CE, 0);
+    printf("LSB: %02X\n", lsb);
+    digitalWrite(SPI_CE, 1);
     float temperature = calculateTemp(msb,  lsb);
     char tempStr[50];
-    sprintf(tempStr,"TEMPERATURE IS %.2f CELSIUS",temperature);
+    sprintf(tempStr,"TEMPERATURE IS %.2f C",temperature);
     printf("%f\n", temperature);
+
 
 
     // Update string with current LED state

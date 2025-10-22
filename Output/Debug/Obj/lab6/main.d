@@ -22,4 +22,5 @@ Output/Debug/Obj/lab6/main.o: \
   C:\Users\Mayno\Documents\155\Lab6Git\Lab6\STM32L432KC_TIM.h \
   C:\Users\Mayno\Documents\155\Lab6Git\Lab6\STM32L432KC_FLASH.h \
   C:\Users\Mayno\Documents\155\Lab6Git\Lab6\STM32L432KC_USART.h \
-  C:\Users\Mayno\Documents\155\Lab6Git\Lab6\STM32L432KC_SPI.h
+  C:\Users\Mayno\Documents\155\Lab6Git\Lab6\STM32L432KC_SPI.h \
+  C:\Users\Mayno\Documents\155\Lab6Git\Lab6\DS1722.h

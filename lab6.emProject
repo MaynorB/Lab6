@@ -60,6 +60,8 @@
     </folder>
     <folder Name="Source Files">
       <configuration Name="Common" filter="c;cpp;cxx;cc;h;s;asm;inc" />
+      <file file_name="DS1722.c" />
+      <file file_name="DS1722.h" />
       <file file_name="main.c" />
       <file file_name="main.h" />
       <file file_name="STM32F401RE_TIM.c" />
