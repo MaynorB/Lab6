@@ -51,6 +51,21 @@ int updateLEDStatus(char request[])
 // Solution Functions
 /////////////////////////////////////////////////////////////////
 
+void setUp(void){
+  configureFlash();
+  configureClock();
+  gpioEnable(GPIO_PORT_A);
+  gpioEnable(GPIO_PORT_B);
+  gpioEnable(GPIO_PORT_C);
+
+  pinMode(PB6, GPIO_OUTPUT);
+  
+  //Timer15
+  RCC->APB2ENR |= (RCC_APB2ENR_TIM15EN);
+  initTIM(TIM15);
+
+
+}
 
 // Function used by printf to send characters to the laptop
 int _write(int file, char *ptr, int len) {
@@ -63,27 +78,15 @@ int _write(int file, char *ptr, int len) {
 
 
 int main(void) {
-  configureFlash();
-  configureClock();
-  gpioEnable(GPIO_PORT_A);
-  gpioEnable(GPIO_PORT_B);
-  gpioEnable(GPIO_PORT_C);
 
-  pinMode(PB6, GPIO_OUTPUT);
-  
-  //Timer15
-  RCC->APB2ENR |= (RCC_APB2ENR_TIM15EN);
-  initTIM(TIM15);
-  
+  setUp();
   USART_TypeDef * USART = initUSART(USART1_ID, 125000);
-
   initSPI(0b111, 0, 1); //Using very slow clock to make sure it'll work
-for (int i = 0; i < 30; i++) {
-  digitalWrite(SPI_CE, 1);       // select DS1722
-  spiSendReceive(0x00);          // send dummy byte to generate clocks
-  digitalWrite(SPI_CE, 0);       // deselect
+  setUpDS(0XE4); // Sets up as 10 bit resolution
 
-}
+  volatile uint8_t config;
+  volatile uint8_t msb;
+  volatile uint8_t lsb;
 
 
   while(1) {
@@ -103,33 +106,18 @@ for (int i = 0; i < 30; i++) {
       request[charIndex++] = readChar(USART);
   }
 
-    //SPI code here for reading temperature
-    uint8_t config;
-    digitalWrite(SPI_CE, 1);
-    spiSendReceive(0x00);          // read config command
-    config = spiSendReceive(0x00); // dummy to clock out config
-    digitalWrite(SPI_CE, 0);
-    printf("config: %02X\n", config);
+    
+    config = configRead();
+    msb = msbRead();
+    lsb = lsbRead();
+    printf("config: %02x\n", config);
+    printf("MSB: %02x\n", msb);
+    printf("LSB: %02x\n", lsb);
 
-    // // ---- Read TEMP MSB ----
-    uint8_t msb;
-    digitalWrite(SPI_CE, 1);
-    spiSendReceive(0x02);        // read MSB addr
-    msb = spiSendReceive(0x00);  // dummy to clock out
-    digitalWrite(SPI_CE, 0);
-    printf("MSB: %02X\n", msb);
 
-    //// ---- Read TEMP LSB ----
-    uint8_t lsb;
-    digitalWrite(SPI_CE, 1);
-    spiSendReceive(0x01);        // read LSB addr
-    lsb = spiSendReceive(0x00);  // dummy to clock out
-    digitalWrite(SPI_CE, 0);
-    printf("LSB: %02X\n", lsb);
-    digitalWrite(SPI_CE, 1);
     float temperature = calculateTemp(msb,  lsb);
     char tempStr[50];
-    sprintf(tempStr,"TEMPERATURE IS %.2f C",temperature);
+    sprintf(tempStr,"TEMPERATURE IS %.4f C",temperature);
     printf("%f\n", temperature);
 
 

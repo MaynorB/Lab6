@@ -9,7 +9,7 @@
 
  /*********************************************************************
 *
-*       initSPI()
+*       initSPI(int br, int cpol, int cpha)
 *
 *       Sets up SPI
 *       br (0b0000 - 0b1111) sets the baud rate, fixing the SPI clock to SYSCLK / 2^(BR+1)
@@ -26,57 +26,99 @@
 *
 */
 void initSPI(int br, int cpol, int cpha) {
-    // --- Enable GPIO and SPI1 clocks ---
-    RCC->AHB2ENR |= (RCC_AHB2ENR_GPIOAEN | RCC_AHB2ENR_GPIOBEN);
-    RCC->APB2ENR |= RCC_APB2ENR_SPI1EN;
 
-    // --- Configure SPI pins ---
-    // PA5 = SCK (AF5)
-    pinMode(PA5, GPIO_ALT);
-    GPIOA->OSPEEDR |= _VAL2FLD(GPIO_OSPEEDR_OSPEED5, 0b11);  // High speed
-    GPIOA->AFR[0] &= ~_VAL2FLD(GPIO_AFRL_AFSEL5, 0xF);
-    GPIOA->AFR[0] |=  _VAL2FLD(GPIO_AFRL_AFSEL5, 5);         // AF5 = SPI1
+    // 1. Enable peripheral clocks
+    RCC->AHB2ENR |= (RCC_AHB2ENR_GPIOAEN | RCC_AHB2ENR_GPIOBEN); // Enable GPIOA and GPIOB clocks
+    RCC->APB2ENR |= RCC_APB2ENR_SPI1EN;                           // Enable SPI1 clock
 
-    // PB4 = MISO (AF5)
-    pinMode(PB4, GPIO_ALT);
-    GPIOB->OSPEEDR |= _VAL2FLD(GPIO_OSPEEDR_OSPEED4, 0b11);
-    GPIOB->AFR[0] &= ~_VAL2FLD(GPIO_AFRL_AFSEL4, 0xF);
-    GPIOB->AFR[0] |=  _VAL2FLD(GPIO_AFRL_AFSEL4, 5);         // AF5 = SPI1
 
-    // PB5 = MOSI (AF5)
-    pinMode(PB5, GPIO_ALT);
-    GPIOB->OSPEEDR |= _VAL2FLD(GPIO_OSPEEDR_OSPEED5, 0b11);
-    GPIOB->AFR[0] &= ~_VAL2FLD(GPIO_AFRL_AFSEL5, 0xF);
-    GPIOB->AFR[0] |=  _VAL2FLD(GPIO_AFRL_AFSEL5, 5);         // AF5 = SPI1
+    // 2. Configure GPIO pins for SPI1
+    //    SPI1 on PB3 = SCK, PB4 = MISO, PB5 = MOSI (AF5)
 
-    // Manual chip select (PA11)
-    pinMode(PA11, GPIO_OUTPUT);
-    digitalWrite(PA11, 1); // Deselect by default
+    // PB3 (SCK)
+    pinMode(PB3, GPIO_ALT);                                       // Set PB3 to alternate function mode
+    GPIOB->OSPEEDR |= _VAL2FLD(GPIO_OSPEEDR_OSPEED3, 0b11);       // High speed for fast clock edges
+    GPIOB->AFR[0] &= ~_VAL2FLD(GPIO_AFRL_AFSEL3, 0xF);            // Clear AF bits
+    GPIOB->AFR[0] |=  _VAL2FLD(GPIO_AFRL_AFSEL3, 5);              // Set AF5 (SPI1)
 
-    // --- SPI1 configuration ---
-    SPI1->CR1 = 0;  // Reset CR1
-    SPI1->CR2 = 0;  // Reset CR2
+    // PB4 (MISO) 
+    pinMode(PB4, GPIO_ALT);                                       // Set PB4 to alternate function mode
+    GPIOB->OSPEEDR |= _VAL2FLD(GPIO_OSPEEDR_OSPEED4, 0b11);       // High speed
+    GPIOB->AFR[0] &= ~_VAL2FLD(GPIO_AFRL_AFSEL4, 0xF);            // Clear AF bits
+    GPIOB->AFR[0] |=  _VAL2FLD(GPIO_AFRL_AFSEL4, 5);              // Set AF5 (SPI1)
 
-    SPI1->CR1 |= _VAL2FLD(SPI_CR1_BR, br);     // Baud rate divider
-    SPI1->CR1 |= SPI_CR1_MSTR;                 // Master mode
-    SPI1->CR1 |= _VAL2FLD(SPI_CR1_CPOL, cpol);
-    SPI1->CR1 |= _VAL2FLD(SPI_CR1_CPHA, cpha);
-    SPI1->CR1 &= ~(SPI_CR1_LSBFIRST | SPI_CR1_SSM); // MSB first, no software slave mgmt
+    //PB5 (MOSI)
+    pinMode(PB5, GPIO_ALT);                                       // Set PB5 to alternate function mode
+    GPIOB->OSPEEDR |= _VAL2FLD(GPIO_OSPEEDR_OSPEED5, 0b11);       // High speed
+    GPIOB->AFR[0] &= ~_VAL2FLD(GPIO_AFRL_AFSEL5, 0xF);            // Clear AF bits
+    GPIOB->AFR[0] |=  _VAL2FLD(GPIO_AFRL_AFSEL5, 5);              // Set AF5 (SPI1)
 
-    SPI1->CR2 |= _VAL2FLD(SPI_CR2_DS, 0b0111); // 8-bit data frame
-    SPI1->CR2 |= (SPI_CR2_FRXTH | SPI_CR2_SSOE);
+    // 3. Configure manual Chip Select (NSS) pin
+    pinMode(PA11, GPIO_OUTPUT);                                   // PA11 used as manual chip select
+    digitalWrite(PA11, 0);                                        // Set HIGH (slave deselected by default)
 
-    // --- Enable SPI ---
-    SPI1->CR1 |= SPI_CR1_SPE;
+
+    // 4. Configure SPI1 peripheral registers
+
+    SPI1->CR1 = 0;                                                // Reset control register 1
+    SPI1->CR2 = 0;                                                // Reset control register 2
+
+    // --- Step 2a: Configure baud rate (BR[2:0]) ---
+    SPI1->CR1 |= _VAL2FLD(SPI_CR1_BR, br);                        // Set clock divider (f_PCLK / 2^BR)
+
+    // --- Step 2b: Clock polarity and phase ---
+    SPI1->CR1 |= _VAL2FLD(SPI_CR1_CPOL, cpol);                    // CPOL: 0 = idle low, 1 = idle high
+    SPI1->CR1 |= _VAL2FLD(SPI_CR1_CPHA, cpha);                    // CPHA: 0 = first edge, 1 = second edge
+
+    // --- Step 2c: Full-duplex master mode ---
+    SPI1->CR1 |= SPI_CR1_MSTR;                                    // Set master mode
+    //SPI1->CR1 &= ~(SPI_CR1_RXONLY | SPI_CR1_BIDIMODE);            // Ensure full-duplex mode (2-line)
+
+    // --- Step 2d: Data order ---
+    SPI1->CR1 &= ~SPI_CR1_LSBFIRST;                               // MSB first
+
+    // --- Step 2f: Slave management ---
+    //SPI1->CR1 &= ~SPI_CR1_SSM;                                    // Disable software NSS management
+    //SPI1->CR1 &= ~SPI_CR1_SSI;                                    // Use hardware NSS control
+
+    // --- Step 3a: Data size ---
+    SPI1->CR2 |= _VAL2FLD(SPI_CR2_DS, 0b0111);                    // 8-bit data frame
+
+    // --- Step 3b: Enable SSOE (NSS output enable) ---
+   SPI1->CR2 |= SPI_CR2_SSOE;                                    // NSS driven automatically when SPE=1
+
+    // --- Step 3e: RX FIFO threshold ---
+    SPI1->CR2 |= SPI_CR2_FRXTH;                                   // 8-bit data alignment for RX
+
+    // ==========================================================
+    // 5. Enable SPI1 peripheral
+    // ==========================================================
+    SPI1->CR1 |= SPI_CR1_SPE;                                     // Enable SPI
 }
-
-/* Transmits a character (1 byte) over SPI and returns the received character.
- *    -- send: the character to send over SPI
- *    -- return: the character received over SPI */
+ /*********************************************************************
+*
+*       spiSendReceive(char send)
+*
+*       sends a character though SPI and returns char recived by DS1722
+*       send: byte we are sending over
+*       return: recieved byte
+*
+*/
 char spiSendReceive(char send) {
-    while(!(SPI1->SR & SPI_SR_TXE)); // Wait until the transmit buffer is empty
-    *(volatile char *) (&SPI1->DR) = send; // Transmit the character over SPI
-    while(!(SPI1->SR & SPI_SR_RXNE)); // Wait until data has been received
-    char rec = (volatile char) SPI1->DR;
-    return rec; // Return received character
+    // Wait until transmit buffer is empty
+    while (!(SPI1->SR & SPI_SR_TXE));
+
+    // Start transmission by writing to data register
+    *(volatile uint8_t *)(&SPI1->DR) = (uint8_t)send;
+
+    // Wait until a byte is received
+    while (!(SPI1->SR & SPI_SR_RXNE));
+
+    // Read received data
+    uint8_t rec = (uint8_t)SPI1->DR;
+
+    // Wait until SPI is not busy before returning
+    while (SPI1->SR & SPI_SR_BSY);
+
+    return (char)rec;
 }

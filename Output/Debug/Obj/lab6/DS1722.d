@@ -12,4 +12,13 @@ Output/Debug/Obj/lab6/DS1722.o: \
   C:\Users\Mayno\Documents\155\Lab6Git\Lab6\CMSIS_5\CMSIS\Core\Include\cmsis_compiler.h \
   C:\Users\Mayno\Documents\155\Lab6Git\Lab6\CMSIS_5\CMSIS\Core\Include\cmsis_gcc.h \
   C:\Users\Mayno\Documents\155\Lab6Git\Lab6\CMSIS_5\CMSIS\Core\Include\mpu_armv7.h \
-  C:\Users\Mayno\Documents\155\Lab6Git\Lab6\STM32L4xx\Device\Include\system_stm32l4xx.h
+  C:\Users\Mayno\Documents\155\Lab6Git\Lab6\STM32L4xx\Device\Include\system_stm32l4xx.h \
+  C:\Users\Mayno\Documents\155\Lab6Git\Lab6\STM32L432KC.h \
+  C:\Program\ Files\SEGGER\SEGGER\ Embedded\ Studio\ 8.18\include\stdio.h \
+  C:\Program\ Files\SEGGER\SEGGER\ Embedded\ Studio\ 8.18\include\stdlib.h \
+  C:\Users\Mayno\Documents\155\Lab6Git\Lab6\STM32L432KC_GPIO.h \
+  C:\Users\Mayno\Documents\155\Lab6Git\Lab6\STM32L432KC_RCC.h \
+  C:\Users\Mayno\Documents\155\Lab6Git\Lab6\STM32L432KC_TIM.h \
+  C:\Users\Mayno\Documents\155\Lab6Git\Lab6\STM32L432KC_FLASH.h \
+  C:\Users\Mayno\Documents\155\Lab6Git\Lab6\STM32L432KC_USART.h \
+  C:\Users\Mayno\Documents\155\Lab6Git\Lab6\STM32L432KC_SPI.h
